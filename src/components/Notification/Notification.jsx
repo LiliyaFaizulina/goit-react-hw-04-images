@@ -1,14 +1,11 @@
-import PropTypes from 'prop-types';
-import { BsEmojiFrown } from 'react-icons/bs';
-import { ErrorMessage } from './Notification.styled';
+import { Wrapper, Image } from './Notification.styled';
 
-export const Notification = ({ message }) => (
-  <ErrorMessage>
-    <BsEmojiFrown />
-    {message}
-  </ErrorMessage>
+export const Notification = () => (
+  <Wrapper>
+    <Image
+      src="https://i.ibb.co/YL3vqZg/nothing.png"
+      alt="nothing"
+      border="0"
+    />
+  </Wrapper>
 );
-
-Notification.propTypes = {
-  message: PropTypes.string.isRequired,
-};

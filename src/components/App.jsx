@@ -1,4 +1,7 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import { SearchBar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { mapper } from 'utils/mapper';
@@ -7,81 +10,64 @@ import { Button } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { Notification } from './Notification/Notification';
 
-const errorMessage = `Nothing found for your request. Change query and try again`;
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    perPage: 12,
-    isLoading: false,
-    error: null,
-    totalHits: null,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [totalHits, setTotalHits] = useState(null);
+  const perPage = 12;
 
-  componentDidUpdate(_, prevState) {
-    const { page, query, perPage } = this.state;
+  const notify = () =>
+    toast('Nothing found for your request. Change query and try again');
 
-    if (query !== prevState.query || page !== prevState.page) {
-      this.fetchImages(query, page, perPage);
+  useEffect(() => {
+    if (query) {
+      fetchApi(query, page, perPage)
+        .then(resp => {
+          if (!resp.data.hits.length) {
+            throw new Error('nothing');
+          }
+
+          const { hits, totalHits } = resp.data;
+          setImages(prevImages => [...prevImages, ...mapper(hits)]);
+          setTotalHits(totalHits);
+        })
+        .catch(error => {
+          setError(error.message);
+          notify();
+        })
+        .finally(() => setIsLoading(false));
     }
-    if (page !== 1) {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  }
+  }, [query, page]);
 
-  onSubmit = e => {
-    e.preventDefault();
-    const query = e.target.elements.query.value.toLowerCase().trim();
-    this.setState({ query, page: 1, images: [], totalHits: null, error: null });
+  const onSubmit = searchQuery => {
+    setQuery(searchQuery);
+    setPage(1);
+    setImages([]);
+    setTotalHits(null);
+    setError(null);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const loadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  fetchImages = async (query, page, perPage) => {
-    try {
-      this.setState({ isLoading: true });
-      const resp = await fetchApi(query, page, perPage);
-
-      if (!resp.data.hits.length) {
-        throw new Error(errorMessage);
-      }
-
-      const { hits, totalHits } = resp.data;
-      this.setState(prevState => ({
-        images: [...prevState.images, ...mapper(hits)],
-        totalHits,
-      }));
-    } catch {
-      this.setState({ error: errorMessage });
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  };
-
-  countTotalPages = () => {
-    const { totalHits, perPage } = this.state;
+  const countTotalPages = () => {
     return Math.round(totalHits / perPage);
   };
 
-  render() {
-    const { onSubmit, loadMore, countTotalPages } = this;
-    const { images, isLoading, error, totalHits, page, perPage } = this.state;
-    return (
-      <>
-        <SearchBar onSubmit={onSubmit} />
-        <ImageGallery images={images} />
-        {error && <Notification message={error} />}
-        {isLoading && <Loader />}
-        {!isLoading && totalHits > perPage && page < countTotalPages() && (
-          <Button loadMore={loadMore} />
-        )}
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <ToastContainer />
+      <SearchBar onSubmit={onSubmit} />
+      <ImageGallery images={images} />
+      {error && <Notification />}
+      {isLoading && <Loader />}
+      {!isLoading && totalHits > perPage && page < countTotalPages() && (
+        <Button loadMore={loadMore} />
+      )}
+    </>
+  );
+};

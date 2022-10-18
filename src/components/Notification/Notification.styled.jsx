@@ -1,9 +1,11 @@
 import styled from 'styled-components';
 
-export const ErrorMessage = styled.p`
-  display: flex;
-  gap: 5px;
-  justify-content: center;
-  margin-top: 20px;
-  font-size: 20px;
+export const Wrapper = styled.div`
+  width: 80vw;
+  margin: 0 auto;
+`;
+
+export const Image = styled.img`
+  display: block;
+  margin: 0 auto;
 `;

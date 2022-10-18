@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useState } from 'react';
 import {
   Header,
   SearchForm,
@@ -8,9 +9,20 @@ import {
 } from './Searchbar.styled.jsx';
 
 export const SearchBar = ({ onSubmit }) => {
+  const [query, setQuery] = useState('');
+
+  const handleInput = e => {
+    setQuery(e.target.value);
+  };
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    onSubmit(query.toLowerCase().trim());
+  };
+
   return (
     <Header>
-      <SearchForm onSubmit={onSubmit}>
+      <SearchForm onSubmit={handleSubmit}>
         <SearchBtn type="submit">
           <SearchIcon />
         </SearchBtn>
@@ -18,6 +30,8 @@ export const SearchBar = ({ onSubmit }) => {
         <SearchInput
           name="query"
           type="text"
+          value={query}
+          onChange={handleInput}
           autoComplete="off"
           autoFocus
           placeholder="Search images and photos"
