@@ -2,7 +2,7 @@ import axios from 'axios';
 
 axios.defaults.baseURL = 'https://pixabay.com/api/';
 
-export const fetchApi = (query, page, per_page) => {
+export const fetchApi = async (query, page, per_page) => {
   const config = {
     params: {
       q: query,
@@ -13,5 +13,6 @@ export const fetchApi = (query, page, per_page) => {
       per_page,
     },
   };
-  return axios(config);
+  const resp = await axios(config);
+  return resp.data;
 };

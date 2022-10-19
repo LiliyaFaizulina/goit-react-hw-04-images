@@ -23,22 +23,24 @@ export const App = () => {
     toast('Nothing found for your request. Change query and try again');
 
   useEffect(() => {
-    if (query) {
-      fetchApi(query, page, perPage)
-        .then(resp => {
-          if (!resp.data.hits.length) {
-            throw new Error('nothing');
-          }
+    const searchImages = async (query, page) => {
+      try {
+        const { hits, totalHits } = await fetchApi(query, page, perPage);
+        if (!hits.length) {
+          throw new Error('nothing');
+        }
+        setImages(prevImages => [...prevImages, ...mapper(hits)]);
+        setTotalHits(totalHits);
+      } catch (error) {
+        setError(error.message);
+        notify();
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-          const { hits, totalHits } = resp.data;
-          setImages(prevImages => [...prevImages, ...mapper(hits)]);
-          setTotalHits(totalHits);
-        })
-        .catch(error => {
-          setError(error.message);
-          notify();
-        })
-        .finally(() => setIsLoading(false));
+    if (query) {
+      searchImages(query, page);
     }
   }, [query, page]);
 
